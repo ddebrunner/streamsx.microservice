@@ -1,0 +1,32 @@
+namespace example.spl.services ;
+
+use com.ibm.streamsx.datetime::*;
+use com.ibm.streamsx.json::TupleToJSON ;
+use com.ibm.streamsx.topology.topic::PublishJava ;
+use com.ibm.streamsx.topology.topic::Publish ;
+
+public composite PublishReadingsService
+{
+	param
+		expression<rstring> $topic : getSubmissionTimeValue("topic",
+			"example/spl/services/PublishReadingsService/reading/v1") ;
+	graph
+		(stream<Reading> GenerateReadings) as Beacon_1 = Beacon()
+		{
+			output
+				GenerateReadings: ts=currentTimeMillis(), reading=random();
+		}
+
+		(stream<rstring jsonString> ReadingsToJson) as TupleToJSON_2 =
+			TupleToJSON(GenerateReadings)
+		{
+		}
+
+		() as Publish_3 = Publish(ReadingsToJson)
+		{
+			param
+				topic : $topic ;
+		}
+
+}
+
