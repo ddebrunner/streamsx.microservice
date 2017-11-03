@@ -12,7 +12,7 @@ public composite SubscribeAndPrintReadingsService()
 {
 	param
 		expression<rstring> $topic : getSubmissionTimeValue("topic",
-			"example/spl/services/PublishReadingsService/reading/v2") ;
+			"example/spl/services/PublishReadingsService/reading/v1") ;
 	graph
 		(stream<rstring jsonString> SubscribeReadings) = Subscribe()
 		{

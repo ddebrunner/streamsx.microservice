@@ -2,8 +2,11 @@
 
 This project is an example implementation of a microservice written using the SPL.  The project contains two microservices:
 
-* PublishReadingsService - This service generate random reading data.  A reading is simply a timestamp and a value.  The service generates readings and publishes the data for other services to consume.  
+* PublishReadingsService - This service generate random reading data.  A reading is simply a timestamp and a value.  The service generates readings and publishes the data for other services to consume.
+    * This service publishes data with this topic: example/spl/services/PublishReadingsService/reading/v1  
 * SubscribeAndPrintReadingsService - This service subscribes data from the `PublishReadingsService` and print the data in the console output.
+    * This services subcribes data with this topic:  example/spl/services/PublishReadingsService/reading/v1
+    * This definition can be found in the service.properties.
 
 The project also contains two Java service wrappers to help compile and launch the SPL service.  The Java wrapper enables clients to have a consistent experience regardless of the langauge used to implement a microservice.  With this approach the end user will customize, build and execute the same way as a Java microservice.
 
@@ -87,6 +90,16 @@ To subscribe data from an upstream application, a service should employ the foll
 * build.gradle is set up to execute the service, using the **execute_service_name** target.  
 * Clients are expected to configure this target to identify the main class and jar file for running the service.
 * Clients may also define additional execute targets if the project contains more than one service.
+
+## Excuting a Pipeline of Services
+
+* build.gradle is set up to show how one can execute a pipeline of services.  The **execute** target is set up for this purpose.
+* The **execute** target executes the microservices that are part of the pipeline in sequence.
+
+* In this example, the pipeline only contains two services.  In a more complex application, the **execute** target can be set up to run more microservices.  
+* The connections between services (i.e. topic subscriptions) are can be set up the service.properties file.
+* Because service properties scoped by prefixing the property name with the service's fully qualified name, a single properties file can be used to describe properties all the services in the pipeline.
+* Running the **execute** target will run all services that are part of the pipeline.
 
 
 ## Evolving a Service
