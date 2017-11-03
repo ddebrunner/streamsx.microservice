@@ -85,3 +85,8 @@ task execute_java_SubscribeAndPrintReadingsService(type: JavaExec) {
     main='example.java.services.SubscribeAndPrintReadingsService'
     classpath = configurations.runtime + files("$buildDir/libs/example.java.services.jar")
 }
+
+task execute<< {
+	tasks.execute_java_SubscribeAndPrintReadingsService.execute()
+	tasks.execute_java_PublishReadingService.execute()
+}

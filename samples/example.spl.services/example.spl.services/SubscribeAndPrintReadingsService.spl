@@ -8,11 +8,11 @@ use com.ibm.streamsx.topology.topic::Subscribe ;
 use com.ibm.streamsx.json::JSONToTuple ;
 type Reading = int64 ts, float64 reading ;
 
-public composite SubscribeAndPrintReadingService()
+public composite SubscribeAndPrintReadingsService()
 {
 	param
 		expression<rstring> $topic : getSubmissionTimeValue("topic",
-			"example/spl/services/PublishReadingsService/reading/v1") ;
+			"example/spl/services/PublishReadingsService/reading/v2") ;
 	graph
 		(stream<rstring jsonString> SubscribeReadings) = Subscribe()
 		{

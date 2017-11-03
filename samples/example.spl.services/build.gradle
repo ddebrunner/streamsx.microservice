@@ -89,12 +89,17 @@ clean.doLast{
 }
 
 task execute_spl_PublishReadingService(type: JavaExec) {
-    main='example.spl.services.PublishReadingService'
+    main='example.spl.services.PublishReadingsService'
     classpath = configurations.runtime + files("$buildDir/libs/example.spl.services.jar")
 }
 
 task execute_spl_SubscribeAndPrintReadingsService(type: JavaExec) {
-    main='example.spl.services.SubscribeAndPrintReadingService'
+    main='example.spl.services.SubscribeAndPrintReadingsService'
     classpath = configurations.runtime + files("$buildDir/libs/example.spl.services.jar")
 }
 
+
+task execute<< {
+	tasks.execute_spl_SubscribeAndPrintReadingsService.execute()
+	tasks.execute_spl_PublishReadingService.execute()
+}
