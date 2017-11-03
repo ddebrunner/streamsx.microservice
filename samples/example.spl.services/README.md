@@ -5,7 +5,7 @@ This project is an example implementation of a microservice written using the SP
 * PublishReadingsService - This service generate random reading data.  A reading is simply a timestamp and a value.  The service generates readings and publishes the data for other services to consume.  
 * SubscribeAndPrintReadingsService - This service subscribes data from the `PublishReadingsService` and print the data in the console output.
 
-The project also contains two Java service wrappers to help compile and launch the SPL service.  The Java wrapper enables clients to have a consistent experience regardless of the langauge used to implement the microservice.  With this approach the end user will customize, build and execute the same way as a Java microservice.
+The project also contains two Java service wrappers to help compile and launch the SPL service.  The Java wrapper enables clients to have a consistent experience regardless of the langauge used to implement a microservice.  With this approach the end user will customize, build and execute the same way as a Java microservice.
 
 ## Directory Structure
 
@@ -60,7 +60,7 @@ Services employ a publish-subscribe model to send or receive data to another ser
 * The topic should begin with the fully qualified name of the service, delimited by "/"
 * Next the topic should describe the data being published  
 * The last segment of the topic should be a version number
-* For example: /com/ibm/streamsx/health/example/java/service/observations/v1
+* For example: a/b/c/readings/v1
 * All services publish data in JSON format, to maximize service interoperability with different languages.  
 
 #### Evolving Data Schema
