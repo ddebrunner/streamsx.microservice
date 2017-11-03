@@ -39,3 +39,6 @@ To create a SPL microservice, client needs to:
 * Subsclass from AbstractSPLService
 * Implement the `getMainCompositeFQN` function and provide the name of the main composite to execute
 * Implement a main method to instantiate and execute the service
+
+For an example of a SPL microservice, see samples/spl/example.spl/services.
+
