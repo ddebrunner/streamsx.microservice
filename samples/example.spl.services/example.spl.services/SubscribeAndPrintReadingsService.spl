@@ -1,0 +1,40 @@
+//*******************************************************************************
+//* Copyright (C) 2017 International Business Machines Corporation
+//* All Rights Reserved
+//*******************************************************************************
+namespace example.spl.services ;
+
+use com.ibm.streamsx.topology.topic::Subscribe ;
+use com.ibm.streamsx.json::JSONToTuple ;
+type Reading = int64 ts, float64 reading ;
+
+public composite SubscribeAndPrintReadingsService()
+{
+	param
+		expression<rstring> $topic : getSubmissionTimeValue("topic",
+			"example/spl/services/PublishReadingsService/reading/v1") ;
+	graph
+		(stream<rstring jsonString> SubscribeReadings) = Subscribe()
+		{
+			param
+				topic : $topic ;
+				streamType : tuple<rstring jsonString> ;
+		}
+
+		() as PrintReading = Custom(JSONToReading as inputStream)
+		{
+			logic
+				onTuple inputStream :
+				{
+					printStringLn((rstring) inputStream) ;
+				}
+
+		}
+
+		(stream<Reading> JSONToReading) as TupleToJSON_3 =
+			JSONToTuple(SubscribeReadings)
+		{
+		}
+
+}
+
