@@ -67,7 +67,7 @@ Services employ a publish-subscribe model to send or receive data to another ser
 
 * If the data schema needs to change as the service evolves, follow these guidelines:
     1.  Adding a new attribute to the schema is not a breaking change.  Update the *minor* number of the topic version as follows to indicate a change in the schema:  e.g. a/b/c/readings/v1 -> **a/b/c/readings/v1/1**
-    1.  Renaming or removing of an attribute breaks compatibility.  If this has to be done, update the *major* number of the topic version as follows to indicate a breaking change:  e.g. **/a/b/c/readings/v2** 
+    1.  Renaming or removing of an attribute breaks compatibility.  If this has to be done, update the *major* number of the topic version as follows to indicate a breaking change:  e.g. **a/b/c/readings/v2** 
     1.  Renaming or removing attributes is discouraged as it breaks application compatibility.  It is recommended that existing data stream is maintained.  New data stream can be added to a microservice to maintain compatibility.
  
 ### Subscribing Data
