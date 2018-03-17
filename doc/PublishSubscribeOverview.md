@@ -37,20 +37,22 @@ A typical pattern is to have three types of microservices:
  ## Published topic
 Publishing a stream publishes it to a single _topic_. Topic syntax is the same as MQTT topic syntax. A topic consists of one or more topic levels. Each topic level is separated by a forward slash (topic level separator), for example `twitter/tweets/raw`. There can be an arbitrary number of levels, typically made up of three parts:
   * A topic domain space, typically one or two levels - allows microservices to be developed independently without fear of clashes leading to incorrect subscriptions. For example:
-   * `twitter/tweets/raw` - the domain is `twitter` indicating any topic starting with `twitter` is from Twitter.
-   * `streamsx/transportation/nextbus/actransit/locations` - the domain is `streamsx/transportation` and is the pattern used by the toolkits from IBMStreams organization at github.com using `streamsx` as the first element and then the project name as the second. This ensures that re-useable microservices implemented by different projects will not end up accidentially using the same topic.
+     * `twitter/tweets/raw` - the domain is _twitter_ indicating any topic starting with _twitter_ is from Twitter.
+     * `streamsx/transportation/nextbus/actransit/locations` - the domain is _streamsx/transportation_ and is the pattern used by the toolkits from IBMStreams organization at github.com using _streamsx_ as the first element and then the project name as the second. This ensures that re-useable microservices implemented by different projects will not end up accidentially using the same topic.
   * The category of the data within the domain, for example within the `twitter` domain these could exist:
-    * `twitter/tweets/raw` - `tweets` is the category and means that any published stream with a topic starting with `twitter/tweets` is related to tweets, in this case the raw JSON of the tweet.
-    * `twitter/users/new` - `users` is the category and means that any published stream with a topic starting with `twitter/users` is related to users, such as for this topic a stream containing users that have just registered.
-    * `streamsx/transportation/nextbus/actransit/locations` - `nextbus` is the category for data from NextBus.
+      * `twitter/tweets/raw` - _tweets_ is the category and means that any published stream with a topic starting with _twitter/tweets_ is related to tweets, in this case the raw JSON of the tweet.
+      * `twitter/users/new` - _users_ is the category and means that any published stream with a topic starting with _twitter/users_ is related to users, such as for this topic a stream containing users that have just registered.
+      * `streamsx/transportation/nextbus/actransit/locations` - _nextbus_ is the category for data from NextBus.
   * Levels following the domain and category topic levels that indicate the data being published. For example:
-    * `twitter/tweets/raw` - A published stream containing the full raw JSON of each tweet.
-    * `twitter/tweets/text` - A published stream containing just the text of each tweet.
-    * `streamsx/transportation/nextbus/actransit/locations` - Nextbus locations for AC Transit agency.
-    * `streamsx/transportation/nextbus/sf-muni/locations` -  Nextbus locations for San Francisco Muni agency.
-    
- Subscribers can use topic filters to subscribe to multiple topics, for example `streamsx/transportation/nextbus/+/locations` subscribes
- to published streams for NextBus locations from any agency being published.
+      * `twitter/tweets/raw` - A published stream containing the full raw JSON of each tweet.
+      * `twitter/tweets/text` - A published stream containing just the text of each tweet.
+      * `streamsx/transportation/nextbus/actransit/locations` - Nextbus locations for AC Transit agency.
+      * `streamsx/transportation/nextbus/sf-muni/locations` -  Nextbus locations for San Francisco Muni agency.
+ 
+Topics are not-predefined, they are dynamically created when a microservice is running that publishes to the topic.
+
+Subscribers can use topic filters to subscribe to multiple topics, for example `streamsx/transportation/nextbus/+/locations` subscribes
+to published streams for NextBus locations from any agency being published.
  
 Before designing a system comprising of multiple microservices the topic scheme used must be designed with publishers and subscriber use cases in mind.
 
@@ -64,3 +66,45 @@ A stream is published with its stream type, this is one of:
   * A Java class - Each tuple on the stream is an instance of the declared class or interface. Only supported by Java applications.
   * A Python object - Each tuple on the stream is a Python object of any type. Only supported by Python applications.
  
+## Publishing streams
+An application/microservice publishes streams using the `Publish` operator in SPL or `publish` methods in Java or Python. Only the _topic_ is specified as type is taken from the actual type of the stream.
+
+Three common patterns for publishing a stream are:
+ * Publish the stream as its SPL/structured type.
+ * Publsh the stream as JSON
+ * Publish the stream as its SPL/structed type and as JSON by transforming the structured stream to JSON and then publishing using `TupleToJSON` operator in SPL or equivalent Java/Python methods.
+     * The two streams can be published to the same _topic_ with different types since subscription is by _topic_ **and** _type_
+     * or published to two different, but related, topics, for example:
+         * `twitter/tweets/users/new`
+         * `twitter/tweets/users/new/json`
+
+Publishing using the SPL/structured schema will most likely perform better than JSON but lacks flexibility with schema evolution. See the _schema evolution & compability_ advanced topic below.
+
+Again, designing how streams will be published and the scheme used for topic levels and filters is important before devloping a complete system using streaming microservices.
+ 
+ Also see these advanced topics - TO BE WRITTEN:
+  * Schema evolution & compability of published streams - 
+  * Congestion - better name needed
+  * Filtering
+  
+## Subscribing to streams
+An application/microservice subcribes to streams using the `Subscribe` operator in SPL or `subscribe` methods in Java or Python specifying the _topic filter_ and _type_.
+
+### Subscribe topic filter
+
+### Susbcribe type
+
+Publish-susbcribe always matches on **exact** type:
+  * SPL/structured schemas - Schemas must be identical same number, order and name and type of attributes.
+  * JSON - Matches JSON streams according to _topic filter_ regardless of content of the JSON.
+  * Java Object - Matches exactly on the declared type of the stream.
+     * No sub-classing is performed, e.g. if interface `B` extends `A` then subscribing using `B` will **not** match a stream published using `A`.
+     * The subscriber must have access to the Java classes for all objects that are present on the stream.
+   * Python object - Matches any published Python object stream, Python object streams are not typed, just arbitrary Python objects.
+
+## Microservice API
+A microservice effectively defines its API through its published and subcribed streams. For example a mythical twitter microservice would declare its API as publishing two streams of:
+ * Published raw tweets with topic `twitter/tweets/raw` with schema `Json`
+ * Published text of tweets with topic `twitter/tweets/text` with schema `String`
+ 
+## Data guarantees
