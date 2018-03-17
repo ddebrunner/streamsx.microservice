@@ -34,7 +34,7 @@ A typical pattern is to have three types of microservices:
  
  A stream is published to a *topic* and has a *type*. Subscribers match published stream based upon the _topic_ and _type_.
  
- ## Published topic
+ ### Published topic
 Publishing a stream publishes it to a single _topic_. Topic syntax is the same as MQTT topic syntax. A topic consists of one or more topic levels. Each topic level is separated by a forward slash (topic level separator), for example `twitter/tweets/raw`. There can be an arbitrary number of levels, typically made up of three parts:
   * A topic domain space, typically one or two levels - allows microservices to be developed independently without fear of clashes leading to incorrect subscriptions. For example:
      * `twitter/tweets/raw` - the domain is _twitter_ indicating any topic starting with _twitter_ is from Twitter.
@@ -56,7 +56,7 @@ to published streams for NextBus locations from any agency being published.
  
 Before designing a system comprising of multiple microservices the topic scheme used must be designed with publishers and subscriber use cases in mind.
 
-## Published type
+### Published type
 A stream is published with its stream type, this is one of:
   * The stream's schema - its SPL or structured schema. Supported by all programming languages.
     * For example a published stream of sensor data might have the schema `tuple<timestamp ts, rstring id, float64 value>`
@@ -66,7 +66,7 @@ A stream is published with its stream type, this is one of:
   * A Java class - Each tuple on the stream is an instance of the declared class or interface. Only supported by Java applications.
   * A Python object - Each tuple on the stream is a Python object of any type. Only supported by Python applications.
  
-## Publishing streams
+### Publishing streams
 An application/microservice publishes streams using the `Publish` operator in SPL or `publish` methods in Java or Python. Only the _topic_ is specified as type is taken from the actual type of the stream.
 
 Three common patterns for publishing a stream are:
@@ -92,6 +92,25 @@ An application/microservice subcribes to streams using the `Subscribe` operator 
 
 ### Subscribe topic filter
 
+A _topic filter_ matches published topics. When a filter matches multiple published topics the resultant subscribed stream will contain tuples from all publishers publishing to the set of matching topics.
+
+Note that for any matching topic a match is **only** made if published and subscribed _type_ match as well.
+
+A _topic filter_ has a similar syntax to a topic with the addition support of two wildcards:
+ * `+` - single level wildcard - Matches any topic at its level, it must be at a level by itself, e.g. `streamsx/transportation/nextbus/+/locations`
+ * `#` - multuple level wildcard - Matches any topic at its level or below, it must be used as the last level of the filter, e.g. `streamsx/transportation/nextbus/#`
+ 
+ A _topic filter_ without a wild card character is an exact match for the topic, that is a filter of `twitter/tweets/text` only matches `twitter/tweets/text`.
+ 
+ Single-level filter (`+`) match examples are:
+  * filter `+` matches `a` and `b` but not `a/b`
+  * filter `a/+` matches `a/b`, `a/c` and `a/` but not `a`, `b/c` or `a/b/c`
+  * filter `+/+` matches `a/b`, `b/c`, `d/` and `/` but not `a` or `a/b/c`
+
+Multi-level filter (`#`) match examples are:
+  * filter `#` matches every topic name such as `a`, `b/c`, `//`
+  * filter `a/b/#` matches `a/b` (parent), `a/b/c`, `a/b/d` and `a/b/c/d`
+
 ### Susbcribe type
 
 Publish-susbcribe always matches on **exact** type:
@@ -103,8 +122,22 @@ Publish-susbcribe always matches on **exact** type:
    * Python object - Matches any published Python object stream, Python object streams are not typed, just arbitrary Python objects.
 
 ## Microservice API
-A microservice effectively defines its API through its published and subcribed streams. For example a mythical twitter microservice would declare its API as publishing two streams of:
+A microservice effectively defines its API through its published and subscribed streams. For example a twitter microservice could declare its API as publishing two streams of:
  * Published raw tweets with topic `twitter/tweets/raw` with schema `Json`
  * Published text of tweets with topic `twitter/tweets/text` with schema `String`
  
+ Similarly a subscribing application can define its API through the streams it subscribes to and any it publishes. For example a matching microservice might declare its api as:
+  * Subscribes to topic `twitter/tweets/raw` with schema `Json`
+  * Publishes alerts to topic `twitter/alerts` with schema `Json`.
+ 
 ## Data guarantees
+
+Publish-subscribe is an **at-most-once** model between publisher and subscriber.
+
+Specifically:
+  * A subscriber will see tuples submitted from a publisher after the connection is made.
+  * A subscriber configured with a buffered connection with a `DropLast` or `DropFirst` policy will drop tuples from publishers when it cannot keep up with the incoming rate from all publishers.
+  * A publisher configured with a congestion policy of XXXX (TODO) can break connections with subscribers that would cause it to block. When a connection is broken tuples submitted by the publisher are not seen by disconnected subscribers, once a connection is restablished a subscriber will see any tuples subsequently submitted by the publisher.
+  * Otherwise without failures or PE restarts, tuples are not lost between publisher and subscriber
+  * Upon failure or restart of the PE containing the subscribe, tuples submitted by publishers are lost until the connection is re-established .Other subscribers are unaffected.
+  * Upon failure or restart of the PE containing a publisher, tuples from that publisher may be lost by subscribers . Other publishers are unaffected.
